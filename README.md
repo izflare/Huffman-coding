@@ -2,32 +2,32 @@
 
 ### Download
 
-To clone the repository, call
-
 ```
 git clone https://github.com/izflare/Huffman-coding.git
 ```
 
 ### Compile
 
-This code has been tested under linux compiling with rust (cargo) ver 1.34.0  
-After download the repository, 
-
 ```
 cd Huffman-coding
 cargo build --release
 ```
 
-### Run
+This code has been tested under linux compiling with rust (cargo) ver 1.34.0.
 
-After compiling,
+### Run (encode)
 
 ```
-cd target/release
-./hc [-d] --input <input>
+./target/release/hc --input <input_file>
 ```
 
-then the tool run.  
-`<input>` is your input text data file.
-Set `-r` flag if you want to decode the file.
+Encoded data will be created as `<input_file>.hc`.
+
+### Run (decode)
+
+```
+./target/release/hc --input <input_file> -d
+```
+
+Decoded data will be created as `<input_file>.dec`.
 
