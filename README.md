@@ -21,7 +21,7 @@ This code has been tested under linux compiling with rust (cargo) ver 1.34.0.
 ./target/release/hc --input <input_file>
 ```
 
-Encoded data will be created as `<input_file>.hc`.
+Encoded file will be created as `<input_file>.hc`.
 
 ### Run (decode)
 
@@ -29,5 +29,5 @@ Encoded data will be created as `<input_file>.hc`.
 ./target/release/hc --input <input_file> -d
 ```
 
-Decoded data will be created as `<input_file>.dec`.
+Decoded file will be created as `<input_file>.dec`.
 
