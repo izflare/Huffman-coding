@@ -5,13 +5,13 @@ use std::collections::HashMap;
 use std::collections::BinaryHeap;
 use bit_vec::BitVec;
 
-pub fn encode(v: &Vec<usize>, encoded: &mut BitVec) -> () {
+pub fn encode(v: &Vec<u32>, encoded: &mut BitVec) -> () {
     //{{{
 
     // Huffman tree def
     #[derive(Eq, PartialEq)]
     struct Node {
-        val: Option<usize>,
+        val: Option<u32>,
         freq: usize,
         left: Option<*mut Node>,
         right: Option<*mut Node>,
@@ -20,7 +20,7 @@ pub fn encode(v: &Vec<usize>, encoded: &mut BitVec) -> () {
     impl PartialOrd for Node {fn partial_cmp(&self, other: &Node) -> Option<Ordering> {Some(self.cmp(other))}}
 
     // freq counting
-    let mut h: HashMap<usize, usize> = HashMap::new();
+    let mut h: HashMap<u32, usize> = HashMap::new();
     for c in v {*h.entry(*c).or_insert(0) += 1;}
     let mut heap = BinaryHeap::new();
     for (k, v) in &h {heap.push(Node{val: Some(*k), freq: *v, left: None, right: None})}
@@ -35,27 +35,27 @@ pub fn encode(v: &Vec<usize>, encoded: &mut BitVec) -> () {
 
     // encoding
     let root = Box::into_raw(Box::new(heap.pop().unwrap()));
-    let code: *mut HashMap<usize, BitVec> = Box::into_raw(Box::new(HashMap::new()));
+    let code: *mut HashMap<u32, BitVec> = Box::into_raw(Box::new(HashMap::new()));
     let mut treebv: BitVec = BitVec::new();
 
-    fn usize_to_bv(x: usize, bv: &mut BitVec) -> () {
+    fn u32_to_bv(x: u32, bv: &mut BitVec) -> () {
         //{{{
         let mut z = x;
-        for _ in 0..usize::max_value().count_ones() {
+        for _ in 0..32 {
             z = z.rotate_left(1);
             bv.push(z % 2 == 1);
         }
         //}}}
     }
 
-    fn enc(ptr: *mut Node, mut b: BitVec, code: &*mut HashMap<usize, BitVec>, treebv: &mut BitVec) {
+    fn enc(ptr: *mut Node, mut b: BitVec, code: &*mut HashMap<u32, BitVec>, treebv: &mut BitVec) {
         //{{{
         unsafe {
             if let Some(x) = (*ptr).val {
                 // println!("({}, {:?})", x, b);
                 (**code).insert(x, b);
                 (*treebv).push(true);
-                usize_to_bv(x, treebv);
+                u32_to_bv(x, treebv);
             }
             else {
                 let mut c = b.clone();
@@ -77,41 +77,41 @@ pub fn encode(v: &Vec<usize>, encoded: &mut BitVec) -> () {
     // encoded = rbv + treebv.len (64 bits) + treebv + encbv
     for _ in 0..(7 - (treebv.len()+encbv.len()) % 8) {encoded.push(false);}
     encoded.push(true);
-    usize_to_bv(h.len(), encoded);
+    u32_to_bv(h.len() as u32, encoded);
     for b in &treebv {encoded.push(b);}
     for b in &encbv {encoded.push(b);}
     //}}}
 }
 
-pub fn decode(bv: &BitVec, v: &mut Vec<usize>) -> () {
+pub fn decode(bv: &BitVec, v: &mut Vec<u32>) -> () {
     //{{{
     let mut mode = 0;
     let mut t = 0;
-    let mut u: usize = 0;
+    let mut u: u32 = 0;
     let mut code: BitVec = BitVec::new();
-    let mut h: HashMap<BitVec, usize> = HashMap::new();
+    let mut h: HashMap<BitVec, u32> = HashMap::new();
     let mut i = 0;
     for b in bv {
         if mode == 0 {if b {mode = 1;}}
         else if mode == 1 {
-            if i < usize::max_value().count_ones() {
+            if i < 32 {
                 if i != 0 {t <<= 1;}
                 if b {t += 1;}
                 i += 1;
             }
-            if i == usize::max_value().count_ones() {i = 0; mode = 2;}
+            if i == 32 {i = 0; mode = 2;}
         }
         else if mode == 2 {
             if b {i = 0; u = 0; mode = 3;}
             else {code.push(false);}
         }
         else if mode == 3 {
-            if i < usize::max_value().count_ones() {
+            if i < 32 {
                 if i != 0 {u <<= 1;}
                 if b {u += 1;}
                 i += 1;
             }
-            if i == usize::max_value().count_ones() {
+            if i == 32 {
                 h.insert(code.clone(), u);
                 // println!("({:?}, {:?})", u, code);
                 t -= 1;

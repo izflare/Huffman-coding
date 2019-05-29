@@ -38,7 +38,7 @@ fn main() {
     let dec: bool = matches.is_present("decode");
 
     if !dec {
-        let v: Vec<usize> = s.iter().map(|c| *c as usize).collect();
+        let v: Vec<u32> = s.iter().map(|c| *c as u32).collect();
         let mut bv: BitVec = BitVec::new();
         let mut f = BufWriter::new(File::create(matches.value_of("input").unwrap().to_owned()+".hc").unwrap());
         huffman_coding::encode(&v, &mut bv);
@@ -46,7 +46,7 @@ fn main() {
     }
     else {
         let bv: BitVec = BitVec::from_bytes(&s);
-        let mut v: Vec<usize> = Vec::new();
+        let mut v: Vec<u32> = Vec::new();
         huffman_coding::decode(&bv, &mut v);
         let u: Vec<u8> = v.iter().map(|c| *c as u8).collect();
         let mut f = BufWriter::new(File::create(matches.value_of("input").unwrap().to_owned()+".dec").unwrap());
